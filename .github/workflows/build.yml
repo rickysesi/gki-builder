@@ -97,13 +97,6 @@ jobs:
           KSU_SUSFS: ${{ inputs.KSU_SUSFS }}
           KSU_MANUAL_HOOK: ${{ inputs.KSU_MANUAL_HOOK }}
         run: |
-          _error() {
-              echo "❌ ERROR: $*"
-              let ret++
-          }
-
-          ret=0
-
           # KernelSU & SuSFS Validation
           if [[ $KSU == "None" && $KSU_SUSFS == "true" ]]; then
               _error "Cannot use SuSFS without KernelSU"
