@@ -296,45 +296,69 @@ cd $WORKDIR
 log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
 git clone -q --depth=1 $ANYKERNEL_REPO -b $ANYKERNEL_BRANCH anykernel
 
-# Set kernel string in anykernel
+# Safety defaults (WAJIB untuk CI)
+STATUS="${STATUS:-BETA}"
+KSU="${KSU:-no}"
+
+# Resolve VARIANT (SukiSU aware)
+case "$KSU" in
+  "yes") VARIANT="SukiSU" ;;   # root SukiSU
+  "no")  VARIANT="VNL" ;;
+  *)     VARIANT="VNL" ;;
+esac
+
+# Append SuSFS if enabled
+if susfs_included; then
+  VARIANT+="+SuSFS"
+fi
+
+# Clone AnyKernel
+log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
+git clone -q --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" anykernel || error "Failed to clone AnyKernel"
+
+# Set kernel string
 if [[ "$STATUS" == "BETA" ]]; then
   BUILD_DATE=$(date -d "$KBUILD_BUILD_TIMESTAMP" +"%Y%m%d-%H%M")
   AK3_ZIP_NAME=${AK3_ZIP_NAME//BUILD_DATE/$BUILD_DATE}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-REL/}
   sed -i \
     "s/kernel.string=.*/kernel.string=${KERNEL_NAME} ${LINUX_VERSION} (${BUILD_DATE}) ${VARIANT}/g" \
-    $WORKDIR/anykernel/anykernel.sh
+    "$WORKDIR/anykernel/anykernel.sh"
 else
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-BUILD_DATE/}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//REL/$RELEASE}
   sed -i \
     "s/kernel.string=.*/kernel.string=${KERNEL_NAME} ${RELEASE} ${LINUX_VERSION} ${VARIANT}/g" \
-    $WORKDIR/anykernel/anykernel.sh
+    "$WORKDIR/anykernel/anykernel.sh"
 fi
 
-# Zip the anykernel
-cd anykernel
+# Zip AnyKernel
+cd anykernel || error "anykernel dir missing"
 log "Zipping anykernel..."
-cp $KERNEL_IMAGE .
-zip -r9 $WORKDIR/$AK3_ZIP_NAME ./*
-cd $OLDPWD
+cp "$KERNEL_IMAGE" . || error "Kernel Image not found"
+zip -r9 "$WORKDIR/$AK3_ZIP_NAME" ./* || error "Zip failed"
+cd "$WORKDIR"
 
-mkdir -p $WORKDIR/artifacts
-mv $WORKDIR/*.zip $WORKDIR/artifacts || true
+# Prepare artifacts (SELALU)
+mkdir -p "$WORKDIR/artifacts"
+mv "$WORKDIR/$AK3_ZIP_NAME" "$WORKDIR/artifacts/" || error "Failed to move zip to artifacts"
 
-if [ $LAST_BUILD == "true" ] && [[ "$STATUS" == "BETA" ]]; then
-  (
+# Optional info file (release only)
+if [[ "$LAST_BUILD" == "true" && "$STATUS" != "BETA" ]]; then
+  {
     echo "LINUX_VERSION=$LINUX_VERSION"
-    echo "SUSFS_VERSION=$(curl -s https://gitlab.com/simonpunk/susfs4ksu/raw/gki-android15-6.6/kernel_patches/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')"
     echo "KERNEL_NAME=$KERNEL_NAME"
+    echo "VARIANT=$VARIANT"
     echo "RELEASE_REPO=$(simplify_gh_url "$GKI_RELEASES_REPO")"
-  ) >> $WORKDIR/artifacts/info.txt
+  } >> "$WORKDIR/artifacts/info.txt"
 fi
 
+# Upload / Notify
 if [[ "$STATUS" == "BETA" ]]; then
-  upload_file "$WORKDIR/$AK3_ZIP_NAME" "$text"
+  upload_file "$WORKDIR/artifacts/$AK3_ZIP_NAME" "$text"
   upload_file "$WORKDIR/build.log"
 else
+  echo "BASE_NAME=$KERNEL_NAME-$VARIANT" >> "$GITHUB_ENV"
   send_msg "✅ Build Succeeded for $VARIANT variant."
 fi
 
