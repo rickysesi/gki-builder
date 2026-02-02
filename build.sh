@@ -13,11 +13,11 @@ KERNEL_NAME="BX-Enfiled"
 USER="Dev-BoltX"
 HOST="BoltX"
 TIMEZONE="Asia/Jakarta"
-ANYKERNEL_REPO="https://github.com/linastorvaldz/anykernel"
+ANYKERNEL_REPO="https://github.com/TegarXLu/AnyKernel3"
 KERNEL_DEFCONFIG="gki_defconfig"
 if [ "$KVER" == "6.6" ]; then
   KERNEL_REPO="https://github.com/TegarXLu/onyx_clo"
-  ANYKERNEL_BRANCH="gki-android15-6.6"
+  ANYKERNEL_BRANCH="main"
   KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
 elif [ "$KVER" == "6.1" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-6.1"
