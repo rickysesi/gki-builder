@@ -292,6 +292,27 @@ text=$(
 EOF
 )
 
+# disable BBG (robust)
+echo ">> Disabling Baseband Guard"
+# pastikan OUTDIR variabel dipakai (absolute)
+if [ -f "${OUTDIR}/.config" ]; then
+  sed -i 's/^CONFIG_BBG=y/CONFIG_BBG=n/' "${OUTDIR}/.config" || true
+else
+  # jika tidak ada file .config, tambahkan baris agar tidak break
+  echo 'CONFIG_BBG=n' >> "${OUTDIR}/.config"
+fi
+
+# Sinkronkan konfigurasi dari tree kernel (jalankan dari KSRC)
+if [ -d "${KSRC}" ]; then
+  (cd "${KSRC}" && make O="${OUTDIR}" olddefconfig)
+else
+  echo "Warning: KSRC (${KSRC}) not found, skipping olddefconfig"
+fi
+
+# debug singkat (opsional)
+echo "CONFIG_BBG status after change:"
+grep -E '^CONFIG_BBG=' "${OUTDIR}/.config" || true
+
 ## Build GKI
 log "Generating config..."
 make ${MAKE_ARGS[@]} $KERNEL_DEFCONFIG
@@ -314,13 +335,6 @@ if [ "$TODO" == "defconfig" ]; then
   upload_file $OUTDIR/.config
   exit 0
 fi
-
-# disable BBG
-echo ">> Disabling Baseband Guard"
-sed -i 's/^CONFIG_BBG=y/CONFIG_BBG=n/' out/.config || true
-cd ksrc
-make O=../out olddefconfig
-cd ..
 
 # Build the actual kernel
 log "Building kernel..."
