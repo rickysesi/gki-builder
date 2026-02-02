@@ -292,58 +292,87 @@ fi
 ## Post-compiling stuff
 cd $WORKDIR
 
-# Clone AnyKernel
-log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
-git clone -q --depth=1 $ANYKERNEL_REPO -b $ANYKERNEL_BRANCH anykernel
+# =====================================================
+# AnyKernel packaging & artifact handling (FINAL)
+# =====================================================
 
-# Safety defaults (WAJIB untuk CI)
+# Safety defaults (CI-safe, no unary operator errors)
 STATUS="${STATUS:-BETA}"
 KSU="${KSU:-no}"
+LAST_BUILD="${LAST_BUILD:-false}"
 
 # Resolve VARIANT (SukiSU aware)
 case "$KSU" in
-  "yes") VARIANT="SukiSU" ;;   # root SukiSU
+  "yes") VARIANT="SukiSU" ;;
   "no")  VARIANT="VNL" ;;
   *)     VARIANT="VNL" ;;
 esac
 
-# Append SuSFS if enabled
+# Append SuSFS flag if enabled
 if susfs_included; then
   VARIANT+="+SuSFS"
 fi
 
-# Clone AnyKernel
-log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
-git clone -q --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" anykernel || error "Failed to clone AnyKernel"
+log "Packaging kernel (STATUS=$STATUS | VARIANT=$VARIANT)"
 
+# -----------------------------------------------------
+# Prepare AnyKernel (idempotent, CI-safe)
+# -----------------------------------------------------
+rm -rf "$WORKDIR/anykernel"
+
+log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
+git clone -q --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" anykernel \
+  || error "Failed to clone AnyKernel"
+
+# -----------------------------------------------------
 # Set kernel string
+# -----------------------------------------------------
 if [[ "$STATUS" == "BETA" ]]; then
   BUILD_DATE=$(date -d "$KBUILD_BUILD_TIMESTAMP" +"%Y%m%d-%H%M")
   AK3_ZIP_NAME=${AK3_ZIP_NAME//BUILD_DATE/$BUILD_DATE}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-REL/}
+
   sed -i \
     "s/kernel.string=.*/kernel.string=${KERNEL_NAME} ${LINUX_VERSION} (${BUILD_DATE}) ${VARIANT}/g" \
     "$WORKDIR/anykernel/anykernel.sh"
 else
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-BUILD_DATE/}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//REL/$RELEASE}
+
   sed -i \
     "s/kernel.string=.*/kernel.string=${KERNEL_NAME} ${RELEASE} ${LINUX_VERSION} ${VARIANT}/g" \
     "$WORKDIR/anykernel/anykernel.sh"
 fi
 
+# -----------------------------------------------------
 # Zip AnyKernel
-cd anykernel || error "anykernel dir missing"
-log "Zipping anykernel..."
-cp "$KERNEL_IMAGE" . || error "Kernel Image not found"
-zip -r9 "$WORKDIR/$AK3_ZIP_NAME" ./* || error "Zip failed"
-cd "$WORKDIR"
+# -----------------------------------------------------
+cd "$WORKDIR/anykernel" || error "anykernel directory missing"
 
-# Prepare artifacts (SELALU)
+log "Zipping AnyKernel package..."
+if [[ ! -f "$KERNEL_IMAGE" ]]; then
+  error "Kernel Image not found: $KERNEL_IMAGE"
+fi
+
+cp "$KERNEL_IMAGE" . || error "Failed to copy kernel image"
+zip -r9 "$WORKDIR/$AK3_ZIP_NAME" ./* || error "Failed to create AnyKernel zip"
+
+cd "$WORKDIR" || exit 1
+
+# -----------------------------------------------------
+# Prepare artifacts (ALWAYS)
+# -----------------------------------------------------
 mkdir -p "$WORKDIR/artifacts"
-mv "$WORKDIR/$AK3_ZIP_NAME" "$WORKDIR/artifacts/" || error "Failed to move zip to artifacts"
 
-# Optional info file (release only)
+if [[ -f "$WORKDIR/$AK3_ZIP_NAME" ]]; then
+  mv "$WORKDIR/$AK3_ZIP_NAME" "$WORKDIR/artifacts/"
+else
+  error "Zip file missing after build: $AK3_ZIP_NAME"
+fi
+
+# -----------------------------------------------------
+# Optional release info
+# -----------------------------------------------------
 if [[ "$LAST_BUILD" == "true" && "$STATUS" != "BETA" ]]; then
   {
     echo "LINUX_VERSION=$LINUX_VERSION"
@@ -353,7 +382,9 @@ if [[ "$LAST_BUILD" == "true" && "$STATUS" != "BETA" ]]; then
   } >> "$WORKDIR/artifacts/info.txt"
 fi
 
+# -----------------------------------------------------
 # Upload / Notify
+# -----------------------------------------------------
 if [[ "$STATUS" == "BETA" ]]; then
   upload_file "$WORKDIR/artifacts/$AK3_ZIP_NAME" "$text"
   upload_file "$WORKDIR/build.log"
@@ -361,5 +392,7 @@ else
   echo "BASE_NAME=$KERNEL_NAME-$VARIANT" >> "$GITHUB_ENV"
   send_msg "✅ Build Succeeded for $VARIANT variant."
 fi
+
+log "Build completed successfully."
 
 exit 0
