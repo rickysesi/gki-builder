@@ -115,22 +115,20 @@ jobs:
           sudo apt-get install -y gh bc bison flex libssl-dev libelf-dev dwarves cpio p7zip-full
           pip install lxml
 
-#     - name: Enable swap with high priority and swappiness
-#       run: |
-#         sudo swapoff -a
-#         sudo fallocate -l 12G /swapfile
-#         sudo chmod 600 /swapfile
-#         sudo mkswap /swapfile
-#         sudo swapon /swapfile --priority 100
-#         sudo sysctl vm.swappiness=100
-#         free -h
-#         echo
-#         swapon --show
+      - name: Enable swap with high priority and swappiness
+        run: |
+         sudo swapoff -a
+         sudo fallocate -l 12G /swapfile
+         sudo chmod 600 /swapfile
+         sudo mkswap /swapfile
+         sudo swapon /swapfile --priority 100
+         sudo sysctl vm.swappiness=100
+         free -h
+         echo
+         swapon --show
 
       - name: Run Build Script
         env:
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }} # telegram chat id
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }} # telegram bot token
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # github token
           STATUS: ${{ env.STATUS }}
           KSU: ${{ inputs.KSU }}
