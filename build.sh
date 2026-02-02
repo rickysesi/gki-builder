@@ -17,7 +17,7 @@ ANYKERNEL_REPO="https://github.com/linastorvaldz/anykernel"
 KERNEL_DEFCONFIG="gki_defconfig"
 if [ "$KVER" == "6.6" ]; then
   KERNEL_REPO="https://github.com/TegarXLu/onyx_clo"
-  ANYKERNEL_BRANCH="android15-6.6"
+  ANYKERNEL_BRANCH="gki-android15-6.6"
   KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
 elif [ "$KVER" == "6.1" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-6.1"
