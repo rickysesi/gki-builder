@@ -314,6 +314,7 @@ if [ "$TODO" == "defconfig" ]; then
   upload_file $OUTDIR/.config
   exit 0
 fi
+
 # disable BBG
 echo ">> Disabling Baseband Guard"
 sed -i 's/^CONFIG_BBG=y/CONFIG_BBG=n/' out/.config || true
