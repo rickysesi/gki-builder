@@ -5,45 +5,19 @@ WORKDIR="$(pwd)"
 if [ "$KVER" == "6.6" ]; then
   RELEASE="v0.3"
 elif [ "$KVER" == "5.10" ]; then
-  RELEASE="v0.2"
+  RELEASE="v0.3"
 elif [ "$KVER" == "6.1" ]; then
   RELEASE="v0.1"
 fi
-KERNEL_NAME="Enfiled-Quix"
-USER="king"
+KERNEL_NAME="BX-Enfiled"
+USER="Dev-BoltX"
 HOST="BoltX"
 TIMEZONE="Asia/Jakarta"
 ANYKERNEL_REPO="https://github.com/linastorvaldz/anykernel"
 KERNEL_DEFCONFIG="gki_defconfig"
-# ===============================
-# Force disable Baseband Guard (CONFIG_BBG)
-# ===============================
-echo ">> Disabling Baseband Guard (CONFIG_BBG)"
-
-if [ -z "${OUTDIR}" ]; then
-  OUTDIR="out"
-fi
-
-if [ -z "${KSRC}" ]; then
-  KSRC="ksrc"
-fi
-
-if [ -f "${OUTDIR}/.config" ]; then
-  sed -i 's/^CONFIG_BBG=y/CONFIG_BBG=n/' "${OUTDIR}/.config" || true
-  grep -q '^CONFIG_BBG=' "${OUTDIR}/.config" || echo 'CONFIG_BBG=n' >> "${OUTDIR}/.config"
-else
-  echo "WARNING: ${OUTDIR}/.config not found, creating one"
-  echo 'CONFIG_BBG=n' > "${OUTDIR}/.config"
-fi
-
-(cd "${KSRC}" && make O="${OUTDIR}" olddefconfig) || true
-
-echo ">> CONFIG_BBG status:"
-grep '^CONFIG_BBG=' "${OUTDIR}/.config" || true
-
 if [ "$KVER" == "6.6" ]; then
   KERNEL_REPO="https://github.com/TegarXLu/onyx_clo"
-  ANYKERNEL_BRANCH="6.6"
+  ANYKERNEL_BRANCH="android15-6.6"
   KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
 elif [ "$KVER" == "6.1" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-6.1"
@@ -52,15 +26,15 @@ elif [ "$KVER" == "6.1" ]; then
 elif [ "$KVER" == "5.10" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-5.10.git"
   ANYKERNEL_BRANCH="android12-5.10"
-  # FIXED: staging
   KERNEL_BRANCH="android12-5.10-staging"
 fi
 DEFCONFIG_TO_MERGE=""
-GKI_RELEASES_REPO="https://github.com/Kingfinik98/BoltX-Release"
+GKI_RELEASES_REPO="https://github.com/TegarXLu/Recovery-Release"
 #CLANG_URL="https://github.com/linastorvaldz/idk/releases/download/clang-r547379/clang.tgz"
+#CLANG_URL="https://github.com/LineageOS/android_prebuilts_clang_kernel_linux-x86_clang-r416183b/archive/refs/heads/lineage-20.0.tar.gz"
 CLANG_URL="$(./clang.sh slim)"
 CLANG_BRANCH=""
-AK3_ZIP_NAME="AK3-$KERNEL_NAME-REL-KVER-VARIANT-BUILD_DATE.zip"
+AK3_ZIP_NAME="$KERNEL_NAME-REL-KVER-VARIANT-BUILD_DATE.zip"
 OUTDIR="$WORKDIR/out"
 KSRC="$WORKDIR/ksrc"
 KERNEL_PATCHES="$WORKDIR/kernel-patches"
@@ -84,14 +58,14 @@ LINUX_VERSION=$(make kernelversion)
 LINUX_VERSION_CODE=${LINUX_VERSION//./}
 DEFCONFIG_FILE=$(find ./arch/arm64/configs -name "$KERNEL_DEFCONFIG")
 
-# --- PATCH 500HZ (DIPASANG DI AWAL) ---
+# --- PATCH 500HZ (INSTALLED AT THE BEGINNING) ---
 log "Applying 500Hz patch..."
 wget -qO Inject_500hz.sh https://raw.githubusercontent.com/Kingfinik98/gki-builder/refs/heads/6.x/inject_ksu/Inject_500hz.sh
 bash Inject_500hz.sh
 rm Inject_500hz.sh
 # --------------------------------------
 
-# --- TAMBAHKAN SCRIPT INJECT KSU ---
+# --- ADD KSU INJECT SCRIPT ---
 log "Injecting custom KSU & SuSFS configs from GitHub..."
 export KSU
 export KSU_SUSFS
@@ -99,19 +73,13 @@ wget -qO inject.sh https://raw.githubusercontent.com/Kingfinik98/gki-builder/ref
 bash inject.sh
 rm inject.sh
 # --------------------------------------
-
 cd $WORKDIR
 
 # Set Kernel variant
 log "Setting Kernel variant..."
 case "$KSU" in
-  "Next") VARIANT="KSUN" ;;
-  "All_Manager") VARIANT="KSUN-ALL" ;;
-  "Biasa") VARIANT="KSU" ;;
-  "Rissu") VARIANT="RKSU" ;;
-  "SukiSU") VARIANT="SukiSU" ;;
-  "Wild") VARIANT="WKSU" ;;
-  "None") VARIANT="NKSU" ;;
+  "yes") VARIANT="KSU" ;;
+  "no") VARIANT="VNL" ;;
 esac
 susfs_included && VARIANT+="+SuSFS"
 
@@ -168,7 +136,7 @@ cd $KSRC
 ## KernelSU setup
 if ksu_included; then
   # Remove existing KernelSU drivers
-  for KSU_PATH in drivers/staging/kernelsu drivers/kernelsu KernelSU KernelSU-Next SukiSU Wild_KSU; do
+  for KSU_PATH in drivers/staging/kernelsu drivers/kernelsu KernelSU KernelSU-Next; do
     if [ -d $KSU_PATH ]; then
       log "KernelSU driver found in $KSU_PATH, Removing..."
       KSU_DIR=$(dirname "$KSU_PATH")
@@ -180,37 +148,18 @@ if ksu_included; then
     fi
   done
 
-  # Install kernelsu
-  case "$KSU" in
-    "All_Manager")
-      log "Installing KernelSU-Next (All Manager Patch)..."
-      install_ksu 'pershoot/KernelSU-Next' 'dev-susfs'
-      config --enable CONFIG_KSU
-      cd KernelSU-Next
-      patch -p1 < $KERNEL_PATCHES/ksu/ksun-add-more-managers-support.patch
-      cd $OLDPWD
-      ;;
-    "Next") install_ksu $(susfs_included && echo 'pershoot/KernelSU-Next dev-susfs' || echo 'pershoot/KernelSU-Next dev-susfs') ;;
-    "Biasa") install_ksu tiann/KernelSU main ;;
-    "Rissu") install_ksu rsuntk/KernelSU $(susfs_included && echo susfs-rksu-master || echo main) ;;
-    "SukiSU")
-      log "Installing SukiSU..."
-      curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/refs/heads/builtin/kernel/setup.sh" | bash -s builtin
-      ;;
-    "Wild")
-      log "Installing Wild KSU..."
-      curl -LSs "https://raw.githubusercontent.com/Kingfinik98/Wild_KSU/refs/heads/stable/kernel/setup.sh" | bash -s stable
-      ;;
-  esac
+  install_ksu 'pershoot/KernelSU-Next' 'dev-susfs'
+  config --enable CONFIG_KSU
 
-  # Fix SUSFS Uname Symbol Error for KernelSU Next & All_Manager
-  if [ "$KSU" == "Next" ] || [ "$KSU" == "All_Manager" ]; then
+  cd KernelSU-Next
+  patch -p1 < $KERNEL_PATCHES/ksu/ksun-add-more-managers-support.patch
+  cd $OLDPWD
+    # Fix SUSFS Uname Symbol Error for KernelSU Next & All_Manager
     log "Applying fix for undefined SUSFS symbols (KernelSU-Next)..."
     # Disable SUSFS Uname handling block in supercalls.c to use standard kernel spoofing
     # This fixes the linker error caused by missing functions in the current SUSFS patch
     sed -i 's/#ifdef CONFIG_KSU_SUSFS_SPOOF_UNAME/#if 0 \/\* CONFIG_KSU_SUSFS_SPOOF_UNAME Disabled to fix build \*\//' drivers/kernelsu/supercalls.c
     log "SUSFS symbol fix applied for KernelSU-Next."
-  fi
 fi
 
 # SUSFS
@@ -249,22 +198,10 @@ else
   config --disable CONFIG_KSU_SUSFS
 fi
 
-# Apply some kernelsu patches
-if [ "$KSU" == "Rissu" ]; then
-  cd KernelSU
-  patch -p1 < "$KERNEL_PATCHES"/ksu/rksu-add-mambosu-manager-support.patch
-  cd "$OLDPWD"
-fi
-
-# Manual Hooks
-if ksu_manual_hook; then
-  : "DUMMY"
-fi
-
 # set localversion
 if [ $TODO == "kernel" ]; then
   LATEST_COMMIT_HASH=$(git rev-parse --short HEAD)
-  if [ "$STATUS" == "BETA" ]; then
+  if [ $STATUS == "BETA" ]; then
     SUFFIX="$LATEST_COMMIT_HASH"
   else
     SUFFIX="${RELEASE}@${LATEST_COMMIT_HASH}"
@@ -285,7 +222,7 @@ if [ $(echo "$LINUX_VERSION_CODE" | head -c1) -eq 6 ]; then
     ARCH=arm64
     CROSS_COMPILE=aarch64-linux-gnu-
     CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
-    -j2
+    -j$(nproc --all)
     O=$OUTDIR
   )
 else
@@ -295,7 +232,7 @@ else
     ARCH=arm64
     CROSS_COMPILE=aarch64-linux-gnu-
     CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
-    -j2
+    -j$(nproc --all)
     O=$OUTDIR
   )
 fi
@@ -335,18 +272,11 @@ if [ "$DEFCONFIG_TO_MERGE" ]; then
 fi
 
 # Upload defconfig if we are doing defconfig
-if [ "$TODO" == "defconfig" ]; then
+if [ $TODO == "defconfig" ]; then
   log "Uploading defconfig..."
   upload_file $OUTDIR/.config
   exit 0
 fi
-
-# disable BBG
-echo ">> Disabling Baseband Guard"
-sed -i 's/^CONFIG_BBG=y/CONFIG_BBG=n/' out/.config || true
-cd ksrc
-make O=../out olddefconfig
-cd ..
 
 # Build the actual kernel
 log "Building kernel..."
@@ -367,7 +297,7 @@ log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
 git clone -q --depth=1 $ANYKERNEL_REPO -b $ANYKERNEL_BRANCH anykernel
 
 # Set kernel string in anykernel
-if [ "$STATUS" == "BETA" ]; then
+if [ $STATUS == "BETA" ]; then
   BUILD_DATE=$(date -d "$KBUILD_BUILD_TIMESTAMP" +"%Y%m%d-%H%M")
   AK3_ZIP_NAME=${AK3_ZIP_NAME//BUILD_DATE/$BUILD_DATE}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-REL/}
@@ -389,13 +319,13 @@ cp $KERNEL_IMAGE .
 zip -r9 $WORKDIR/$AK3_ZIP_NAME ./*
 cd $OLDPWD
 
-if [ "$STATUS" != "BETA" ]; then
+if [ $STATUS != "BETA" ]; then
   echo "BASE_NAME=$KERNEL_NAME-$VARIANT" >> $GITHUB_ENV
   mkdir -p $WORKDIR/artifacts
   mv $WORKDIR/*.zip $WORKDIR/artifacts
 fi
 
-if [ "$LAST_BUILD" == "true" ] && [ "$STATUS" != "BETA" ]; then
+if [ $LAST_BUILD == "true" ] && [ $STATUS != "BETA" ]; then
   (
     echo "LINUX_VERSION=$LINUX_VERSION"
     echo "SUSFS_VERSION=$(curl -s https://gitlab.com/simonpunk/susfs4ksu/raw/gki-android15-6.6/kernel_patches/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')"
@@ -404,7 +334,7 @@ if [ "$LAST_BUILD" == "true" ] && [ "$STATUS" != "BETA" ]; then
   ) >> $WORKDIR/artifacts/info.txt
 fi
 
-if [ "$STATUS" == "BETA" ]; then
+if [ $STATUS == "BETA" ]; then
   upload_file "$WORKDIR/$AK3_ZIP_NAME" "$text"
   upload_file "$WORKDIR/build.log"
 else
