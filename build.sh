@@ -297,7 +297,7 @@ log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
 git clone -q --depth=1 $ANYKERNEL_REPO -b $ANYKERNEL_BRANCH anykernel
 
 # Set kernel string in anykernel
-if [ $STATUS == "BETA" ]; then
+if [[ "$STATUS" == "BETA" ]]; then
   BUILD_DATE=$(date -d "$KBUILD_BUILD_TIMESTAMP" +"%Y%m%d-%H%M")
   AK3_ZIP_NAME=${AK3_ZIP_NAME//BUILD_DATE/$BUILD_DATE}
   AK3_ZIP_NAME=${AK3_ZIP_NAME//-REL/}
@@ -322,7 +322,7 @@ cd $OLDPWD
 mkdir -p $WORKDIR/artifacts
 mv $WORKDIR/*.zip $WORKDIR/artifacts || true
 
-if [ $LAST_BUILD == "true" ] && [ $STATUS != "BETA" ]; then
+if [ $LAST_BUILD == "true" ] && [[ "$STATUS" == "BETA" ]]; then
   (
     echo "LINUX_VERSION=$LINUX_VERSION"
     echo "SUSFS_VERSION=$(curl -s https://gitlab.com/simonpunk/susfs4ksu/raw/gki-android15-6.6/kernel_patches/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g')"
@@ -331,7 +331,7 @@ if [ $LAST_BUILD == "true" ] && [ $STATUS != "BETA" ]; then
   ) >> $WORKDIR/artifacts/info.txt
 fi
 
-if [ $STATUS == "BETA" ]; then
+if [[ "$STATUS" == "BETA" ]]; then
   upload_file "$WORKDIR/$AK3_ZIP_NAME" "$text"
   upload_file "$WORKDIR/build.log"
 else
