@@ -9,9 +9,9 @@ elif [ "$KVER" == "5.10" ]; then
 elif [ "$KVER" == "6.1" ]; then
   RELEASE="v0.1"
 fi
-KERNEL_NAME="BX-Enfiled"
-USER="Dev-BoltX"
-HOST="BoltX"
+KERNEL_NAME="TegarXLu-GKI"
+USER="TegarXLu"
+HOST="TegarXLu"
 TIMEZONE="Asia/Jakarta"
 ANYKERNEL_REPO="https://github.com/TegarXLu/AnyKernel3"
 KERNEL_DEFCONFIG="gki_defconfig"
