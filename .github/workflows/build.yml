@@ -28,7 +28,7 @@ on:
 
       KSU:
         description: Pilih Varian KernelSU
-        default: "Sukisu"
+        default: "SukiSU"
         type: choice
         options:
           - "None"
