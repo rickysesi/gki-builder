@@ -319,11 +319,8 @@ cp $KERNEL_IMAGE .
 zip -r9 $WORKDIR/$AK3_ZIP_NAME ./*
 cd $OLDPWD
 
-if [ $STATUS != "BETA" ]; then
-  echo "BASE_NAME=$KERNEL_NAME-$VARIANT" >> $GITHUB_ENV
-  mkdir -p $WORKDIR/artifacts
-  mv $WORKDIR/*.zip $WORKDIR/artifacts
-fi
+mkdir -p $WORKDIR/artifacts
+mv $WORKDIR/*.zip $WORKDIR/artifacts || true
 
 if [ $LAST_BUILD == "true" ] && [ $STATUS != "BETA" ]; then
   (
