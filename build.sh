@@ -293,11 +293,11 @@ if [[ $KSU == "Suki" ]]; then
   curl -Ls "$LATEST_SUKISU_PATCH" -o patch_linux
   chmod a+x ./patch_linux
 
-  # Patch the kernel image
-  cp $KERNEL_IMAGE ./Image
-  sudo ./patch_linux
+ # Patch the kernel image
+  cp "$KERNEL_IMAGE" ./Image
+  ./patch_linux
   mv oImage Image
-  KERNEL_IMAGE=$(pwd)/Image
+  KERNEL_IMAGE="$(pwd)/Image"
 
   cd -
 fi
