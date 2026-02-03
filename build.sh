@@ -9,27 +9,27 @@ elif [ "$KVER" == "5.10" ]; then
 elif [ "$KVER" == "6.1" ]; then
   RELEASE="v0.1"
 fi
-KERNEL_NAME="TegarXLu-GKI"
-USER="TegarXLu"
-HOST="TegarXLu"
+KERNEL_NAME="VictoriaVDeFalsa-GKI"
+USER="Victor"
+HOST="VictoriaVDeFalsa"
 TIMEZONE="Asia/Jakarta"
-ANYKERNEL_REPO="https://github.com/TegarXLu/AnyKernel3"
+ANYKERNEL_REPO="https://github.com/linastorvaldz/anykernel"
 KERNEL_DEFCONFIG="gki_defconfig"
 if [ "$KVER" == "6.6" ]; then
-  KERNEL_REPO="https://github.com/TegarXLu/onyx_clo"
-  ANYKERNEL_BRANCH="main"
+  KERNEL_REPO="https://github.com/rickysesi/android_kernel_xiaomi_sm8635"
+  ANYKERNEL_BRANCH=""
   KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
 elif [ "$KVER" == "6.1" ]; then
-  KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-6.1"
+  KERNEL_REPO="https://github.com/rickysesi/android_kernel_xiaomi_sm8635"
   ANYKERNEL_BRANCH="android14-6.1"
-  KERNEL_BRANCH="android14-6.1-staging"
+  KERNEL_BRANCH="Rd"
 elif [ "$KVER" == "5.10" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-5.10.git"
   ANYKERNEL_BRANCH="android12-5.10"
   KERNEL_BRANCH="android12-5.10-staging"
 fi
 DEFCONFIG_TO_MERGE=""
-GKI_RELEASES_REPO="https://github.com/TegarXLu/Recovery-Release"
+GKI_RELEASES_REPO="https://github.com/rickysesi/gki-builder/releases/"
 #CLANG_URL="https://github.com/linastorvaldz/idk/releases/download/clang-r547379/clang.tgz"
 #CLANG_URL="https://github.com/LineageOS/android_prebuilts_clang_kernel_linux-x86_clang-r416183b/archive/refs/heads/lineage-20.0.tar.gz"
 CLANG_URL="$(./clang.sh slim)"
