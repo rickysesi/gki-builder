@@ -3,15 +3,15 @@
 # Constants
 WORKDIR="$(pwd)"
 RELEASE="v0.2"
-KERNEL_NAME="QuartiX"
-USER="eraselk"
-HOST="gacorprjkt"
+KERNEL_NAME="TegarXLu"
+USER="Tegar"
+HOST="TegarXLu"
 TIMEZONE="Asia/Makassar"
 ANYKERNEL_REPO="https://github.com/linastorvaldz/anykernel"
 ANYKERNEL_BRANCH="android15-6.6"
-KERNEL_REPO="https://github.com/linastorvaldz/kernel_common"
-KERNEL_BRANCH="android15-6.6-2025-01"
-KERNEL_DEFCONFIG="quartix_defconfig"
+KERNEL_REPO="https://github.com/TegarXLu/onyx_clo"
+KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
+KERNEL_DEFCONFIG="onyx_defconfig"
 DEFCONFIG_TO_MERGE=""
 GKI_RELEASES_REPO="https://github.com/linastorvaldz/quartix-releases"
 #CLANG_URL="https://github.com/linastorvaldz/idk/releases/download/clang-r547379/clang.tgz"
@@ -211,10 +211,10 @@ if [ "$KSU" == "Magic" ] && susfs_included; then
   config --disable CONFIG_KSU_SUSFS_SUS_SU
 fi
 
-# Enable KPM Supports for SukiSU
-# if [[ $KSU == "Suki" ]]; then
-#   config --enable CONFIG_KPM
-# fi
+ Enable KPM Supports for SukiSU
+ if [[ $KSU == "Suki" ]]; then
+   config --enable CONFIG_KPM
+ fi
 
 # set localversion
 if [[ $TODO == "kernel" ]]; then
@@ -284,23 +284,23 @@ make ${MAKE_ARGS[@]} Image
 ## Post-compiling stuff
 cd $WORKDIR
 
-# Patch the kernel Image for KPM Supports
-#if [[ $KSU == "Suki" ]]; then
-#  tempdir=$(mktemp -d) && cd $tempdir
-#
-#  # Setup patching tool
-#  LATEST_SUKISU_PATCH=$(curl -s "https://api.github.com/repos/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest" | grep "browser_download_url" | grep "patch_linux" | cut -d '"' -f 4)
-#  curl -Ls "$LATEST_SUKISU_PATCH" -o patch_linux
-#  chmod a+x ./patch_linux
-#
-#  # Patch the kernel image
-#  cp $KERNEL_IMAGE ./Image
-#  sudo ./patch_linux
-#  mv oImage Image
-#  KERNEL_IMAGE=$(pwd)/Image
-#
-#  cd -
-#fi
+ Patch the kernel Image for KPM Supports
+if [[ $KSU == "Suki" ]]; then
+  tempdir=$(mktemp -d) && cd $tempdir
+
+  # Setup patching tool
+  LATEST_SUKISU_PATCH=$(curl -s "https://api.github.com/repos/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest" | grep "browser_download_url" | grep "patch_linux" | cut -d '"' -f 4)
+  curl -Ls "$LATEST_SUKISU_PATCH" -o patch_linux
+  chmod a+x ./patch_linux
+
+  # Patch the kernel image
+  cp $KERNEL_IMAGE ./Image
+  sudo ./patch_linux
+  mv oImage Image
+  KERNEL_IMAGE=$(pwd)/Image
+
+  cd -
+fi
 
 # Clone AnyKernel
 log "Cloning anykernel from $(simplify_gh_url "$ANYKERNEL_REPO")"
