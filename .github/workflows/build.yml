@@ -76,7 +76,6 @@ jobs:
 
       - name: Validate Inputs and Secrets
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # github token
           KSU: ${{ inputs.KSU }}
           KSU_SUSFS: ${{ inputs.KSU_SUSFS }}
           KSU_MANUAL_HOOK: ${{ inputs.KSU_MANUAL_HOOK }}
@@ -123,7 +122,6 @@ jobs:
 
       - name: Run Build Script
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # github token
           KSU: ${{ inputs.KSU }}
           KSU_SUSFS: ${{ inputs.KSU_SUSFS }}
           KSU_MANUAL_HOOK: ${{ inputs.KSU_MANUAL_HOOK }}
