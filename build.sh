@@ -193,8 +193,8 @@ else
   config --disable CONFIG_KSU_SUSFS
 fi
 
-# KSU Manual Hooks
-if ksu_manual_hook; then
+# KSU Manual Hooks (disable for 6.6+)
+if ksu_manual_hook && [[ "$LINUX_VERSION_CODE" -lt 6600 ]]; then
   log "Applying manual hook patch"
   if [[ "$KSU" == "Suki" ]]; then
     patch -p1 --forward < $WORKDIR/kernel-patches/manual-hook-v1.6.patch
