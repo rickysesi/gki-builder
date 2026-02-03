@@ -282,19 +282,24 @@ make ${MAKE_ARGS[@]} Image
 # $KMI_CHECK "$KSRC/android/abi_gki_aarch64.xml" "$MODULE_SYMVERS"
 
 ## Post-compiling stuff
-cd $WORKDIR
+cd "$WORKDIR"
 
- Patch the kernel Image for KPM Supports
-if [[ $KSU == "Suki" ]]; then
-  tempdir=$(mktemp -d) && cd $tempdir
+# Patch the kernel Image for KPM Supports
+if [[ "$KSU" == "Suki" ]]; then
+  tempdir="$(mktemp -d)" && cd "$tempdir"
 
   # Setup patching tool
-  LATEST_SUKISU_PATCH=$(curl -s "https://api.github.com/repos/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest" | grep "browser_download_url" | grep "patch_linux" | cut -d '"' -f 4)
+  LATEST_SUKISU_PATCH=$(
+    curl -s "https://api.github.com/repos/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest" |
+      grep "browser_download_url" |
+      grep "patch_linux" |
+      cut -d '"' -f 4
+  )
   curl -Ls "$LATEST_SUKISU_PATCH" -o patch_linux
-  chmod a+x ./patch_linux
+  chmod +x patch_linux
 
- # Patch the kernel image
-  cp "$KERNEL_IMAGE" ./Image
+  # Patch the kernel image
+  cp "$KERNEL_IMAGE" Image
   ./patch_linux
   mv oImage Image
   KERNEL_IMAGE="$(pwd)/Image"
