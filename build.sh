@@ -20,9 +20,9 @@ if [ "$KVER" == "6.6" ]; then
   ANYKERNEL_BRANCH=""
   KERNEL_BRANCH="6.6.77-capybara-clo-2.3"
 elif [ "$KVER" == "6.1" ]; then
-  KERNEL_REPO="https://github.com/rickysesi/Realking_kernel_peridot"
+  KERNEL_REPO="https://github.com/rickysesi/android_kernel_xiaomi_sm8635"
   ANYKERNEL_BRANCH="android14-6.1"
-  KERNEL_BRANCH="main"
+  KERNEL_BRANCH="Rd"
 
 elif [ "$KVER" == "5.10" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-5.10.git"
