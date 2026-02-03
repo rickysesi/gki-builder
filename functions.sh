@@ -4,26 +4,6 @@
 #    Functions
 # ==============
 
-# Telegram functions
-# upload_file
-upload_file() {
-  local FILE="$1"
-  local CAPTION="${2:-}"
-
-  if ! [[ -f $FILE ]]; then
-    error "file $FILE doesn't exist"
-  fi
-
-  chmod 777 "$FILE"
-
-  curl -s -F "document=@${FILE}" \
-    -F "chat_id=${TG_CHAT_ID}" \
-    -F "caption=${CAPTION}" \
-    -F "parse_mode=markdown" \
-    -F "disable_web_page_preview=true" \
-    "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument"
-}
-
 # send_msg
 send_msg() {
   local MESSAGE="$1"
