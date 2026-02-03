@@ -349,11 +349,11 @@ if [[ $LAST_BUILD == "true" && $STATUS != "BETA" ]]; then
   ) >> $WORKDIR/artifacts/info.txt
 fi
 
-if [[ $STATUS == "BETA" ]]; then
-  upload_file "$WORKDIR/$AK3_ZIP_NAME" "$text"
-  upload_file "$WORKDIR/build.log"
+if [[ "$STATUS" == "BETA" ]]; then
+  echo "Build finished: $AK3_ZIP_NAME"
+  echo "$text"
 else
-  send_msg "✅ Build Succeeded for $VARIANT variant."
+  echo "✅ Build Succeeded for $VARIANT variant."
 fi
 
 exit 0
