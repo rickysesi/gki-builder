@@ -26,7 +26,7 @@ on:
 
       KSU:
         description: KernelSU variant
-        default: ""
+        default: "Suki"
         type: choice
         options:
           - "None"
@@ -36,7 +36,7 @@ on:
 
       KSU_SUSFS:
         description: Include SUSFS?
-        default: "false"
+        default: "true"
         type: choice
         options:
           - "true"
@@ -44,7 +44,7 @@ on:
 
       KSU_MANUAL_HOOK:
         description: Use KSU Manual Hooks?
-        default: "false"
+        default: "true"
         type: choice
         options:
           - "true"
@@ -76,8 +76,6 @@ jobs:
 
       - name: Validate Inputs and Secrets
         env:
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }} # telegram chat id
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }} # telegram bot token
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # github token
           KSU: ${{ inputs.KSU }}
           KSU_SUSFS: ${{ inputs.KSU_SUSFS }}
@@ -90,12 +88,6 @@ jobs:
 
           ret=0
           # Check Secrets
-          if [[ -z "$TG_CHAT_ID" ]]; then
-            _error "Missing TG_CHAT_ID secret (Telegram Chat ID)"
-          fi
-          if [[ -z "$TG_BOT_TOKEN" ]]; then
-            _error "Missing TG_BOT_TOKEN secret (Telegram Bot Token)"
-          fi
           if [[ -z "$GH_TOKEN" ]]; then
             _error "Missing GH_TOKEN secret (GitHub PAT)"
           fi
@@ -117,22 +109,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gh bc bison flex libssl-dev libelf-dev dwarves cpio
 
-#     - name: Enable swap with high priority and swappiness
-#       run: |
-#         sudo swapoff -a
-#         sudo fallocate -l 12G /swapfile
-#         sudo chmod 600 /swapfile
-#         sudo mkswap /swapfile
-#         sudo swapon /swapfile --priority 100
-#         sudo sysctl vm.swappiness=100
-#         free -h
-#         echo
-#         swapon --show
+      - name: Enable swap with high priority and swappiness
+        run: |
+          sudo swapoff -a
+          sudo fallocate -l 12G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile --priority 100
+          sudo sysctl vm.swappiness=100
+          free -h
+          echo
+          swapon --show
 
       - name: Run Build Script
         env:
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }} # telegram chat id
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }} # telegram bot token
           GH_TOKEN: ${{ secrets.GH_TOKEN }} # github token
           KSU: ${{ inputs.KSU }}
           KSU_SUSFS: ${{ inputs.KSU_SUSFS }}
