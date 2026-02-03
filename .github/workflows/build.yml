@@ -86,10 +86,6 @@ jobs:
           }
 
           ret=0
-          # Check Secrets
-          if [[ -z "$GH_TOKEN" ]]; then
-            _error "Missing GH_TOKEN secret (GitHub PAT)"
-          fi
           # Check KernelSU variants
           if [[ $KSU == "None" && $KSU_SUSFS == "true" ]]; then
               _error "Cannot use SuSFS without KernelSU"
