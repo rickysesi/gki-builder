@@ -211,7 +211,7 @@ if [ "$KSU" == "Magic" ] && susfs_included; then
   config --disable CONFIG_KSU_SUSFS_SUS_SU
 fi
 
- Enable KPM Supports for SukiSU
+# Enable KPM Supports for SukiSU
  if [[ $KSU == "Suki" ]]; then
    config --enable CONFIG_KPM
  fi
