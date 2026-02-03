@@ -129,7 +129,7 @@ if ksu_included; then
   case "$KSU" in
     "Next") install_ksu KernelSU-Next/KernelSU-Next next ;;
     "Magic") install_ksu 5ec1cff/KernelSU main ;;
-    "Suki") install_ksu SukiSU-Ultra/SukiSU-Ultra $(if susfs_included; then echo "susfs-main"; elif ksu_manual_hook; then echo "nongki"; else echo "main"; fi) ;;
+    "Suki") install_ksu SukiSU-Ultra/SukiSU-Ultra builtin ;;
   esac
   config --enable CONFIG_KSU
   config --disable CONFIG_KSU_MANUAL_SU
