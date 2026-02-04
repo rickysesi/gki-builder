@@ -22,7 +22,7 @@ if [ "$KVER" == "6.6" ]; then
 elif [ "$KVER" == "6.1" ]; then
   KERNEL_REPO="https://github.com/rickysesi/android_kernel_xiaomi_sm8635"
   ANYKERNEL_BRANCH="android14-6.1"
-  KERNEL_BRANCH="Rd"
+  KERNEL_BRANCH="lineage-22.2"
 
 elif [ "$KVER" == "5.10" ]; then
   KERNEL_REPO="https://github.com/ramabondanp/android_kernel_common-5.10.git"
